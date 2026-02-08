@@ -453,21 +453,26 @@ GITLAB_URL=https://gitlab.com
 2. ~~Probar end-to-end con rango de fechas hardcodeado~~
 3. ~~Validar el flujo completo~~
 
-### Fase 5: CLI ← SIGUIENTE
+### Fase 5: CLI ✅
 
-1. Implementar base-command con patron dual-mode
-2. Implementar cli.ts con Commander
-3. Crear entry point index.ts
-4. Implementar config manager
-5. Crear prompts interactivos para fechas
-6. Conectar el handler al comando progress-summary
+1. ~~Implementar cli.ts con Commander + menu interactivo~~
+2. ~~Crear entry point index.ts con dotenv~~
+3. ~~Implementar config manager (lee ~/.ai-automations/config.json + .env)~~
+4. ~~Crear prompts interactivos para fechas, tokens, y config~~
+5. ~~Conectar el handler al comando progress-summary~~
+6. ~~Spinners durante fetch (ora)~~
+7. ~~Logger con chalk~~
+8. ~~Flujo interactivo: prompt tokens/config si faltan, ofrecer guardar~~
+9. ~~CLI flags (--from, --to, --gitlab-projects, --asana-project)~~
+10. ~~README actualizado con setup e instrucciones~~
 
-### Fase 6: Testing & Polish
+### Fase 6: Testing & Polish ← SIGUIENTE
 
-1. Probar modo interactivo y directo
-2. Manejo de errores (tokens faltantes, APIs caidas)
-3. Spinners durante fetch
-4. `.env.example` actualizado
+1. End-to-end testing con datos reales
+2. Manejo de errores edge cases (APIs caidas, rate limits, tokens invalidos)
+3. Validar que el output del AI sea correcto y consistente
+4. Performance: cache de resoluciones de proyectos
+5. Documentar extensibilidad (como agregar comandos)
 
 ## Checklist de Funcionalidad
 
@@ -485,12 +490,14 @@ GITLAB_URL=https://gitlab.com
 - [x] Datos se mapean correctamente a ProgressData
 - [x] AI genera summary con formato [Proyecto] - [Tema]: Descripcion
 - [x] Handler conecta todo el flujo end-to-end
-- [ ] Menu interactivo muestra "progress-summary"
-- [ ] Flags CLI funcionan (`--from`, `--to`)
-- [ ] Config manager lee tokens de ENV y config file
-- [ ] Output se imprime en terminal
-- [ ] Spinners se muestran durante fetch
-- [ ] Errores se manejan con mensajes claros
+- [x] Menu interactivo muestra "progress-summary"
+- [x] Flags CLI funcionan (`--from`, `--to`, `--gitlab-projects`, `--asana-project`)
+- [x] Config manager lee tokens de ~/.ai-automations/.env y config file
+- [x] Output se imprime en terminal
+- [x] Spinners se muestran durante fetch
+- [x] Prompt interactivo para tokens/config si faltan
+- [x] Auto-save de configuracion en ~/.ai-automations/
+- [x] README con guias para obtener tokens
 
 ## Consideraciones de Seguridad
 

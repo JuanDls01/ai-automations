@@ -2,6 +2,7 @@ import { Command } from 'commander';
 import { select } from '@inquirer/prompts';
 import chalk from 'chalk';
 import { registerCommands, getAvailableCommands } from './commands/index.js';
+import { header, badge, icons } from './utils/ui.js';
 
 export async function cli(argv: string[]) {
   const program = new Command();
@@ -25,26 +26,34 @@ export async function cli(argv: string[]) {
 }
 
 async function showInteractiveMenu(program: Command) {
-  console.log(
-    '\n' + chalk.bold.cyan('AI Automations CLI') + chalk.dim(' - Automated tasks powered by GenAI')
-  );
+  // Show banner
+  console.log(header('AI-AUTO', 'Automated tasks powered by GenAI'));
+  console.log(badge('commands', 'cyan'));
   console.log();
 
   const commands = getAvailableCommands();
 
   if (commands.length === 0) {
-    console.log(chalk.yellow('No commands available yet.\n'));
+    console.log(chalk.yellow(`${icons.warning} No commands available yet.\n`));
     return;
   }
 
+  console.log(chalk.dim(`Found ${chalk.cyan(commands.length)} command(s)`));
+  console.log();
+
   try {
     const selected = await select({
-      message: 'Select a command:',
+      message: chalk.bold('Select a command:'),
       choices: [
         ...commands.map((cmd) => ({
-          name: `${chalk.bold(cmd.name)} ${chalk.dim('- ' + cmd.description)}`,
+          name: `${chalk.cyan(cmd.name)} ${chalk.dim('→')} ${chalk.dim(cmd.description)}`,
           value: cmd.name,
         })),
+        {
+          name: chalk.dim('─'.repeat(50)),
+          value: 'separator',
+          disabled: true,
+        },
         {
           name: chalk.dim('Exit'),
           value: 'exit',

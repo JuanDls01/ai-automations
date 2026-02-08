@@ -2,7 +2,7 @@ import { GitLabClient } from '../../integrations/gitlab/client.js';
 import { AsanaClient } from '../../integrations/asana/client.js';
 import { generateProgressSummary } from '../../ai/provider.js';
 import { withSpinner } from '../../utils/spinner.js';
-import { logger } from '../../utils/logger.js';
+import { summary as formatSummary } from '../../utils/ui.js';
 import type { ProgressData } from './types.js';
 import type { AsanaTask } from '../../integrations/asana/types.js';
 
@@ -51,10 +51,17 @@ export async function handleProgressSummary(
       ])
   );
 
-  logger.info(
-    `Found: ${mergedMRs.length} merged MRs, ${openMRs.length} open MRs, ` +
-      `${completedTasks.length} completed tasks, ${incompleteTasks.length} incomplete tasks`
+  // Display summary of fetched data
+  console.log();
+  console.log(
+    formatSummary([
+      { label: 'Merged MRs', value: mergedMRs.length },
+      { label: 'Open MRs', value: openMRs.length },
+      { label: 'Completed tasks', value: completedTasks.length },
+      { label: 'Incomplete tasks', value: incompleteTasks.length },
+    ])
   );
+  console.log();
 
   // Step 2: Categorize incomplete tasks by section
   const inProgressTasks: AsanaTask[] = [];

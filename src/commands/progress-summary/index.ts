@@ -13,6 +13,8 @@ import type { ResolvedEnv } from '../../config/schema.js';
 import { GitLabClient } from '../../integrations/gitlab/client.js';
 import { AsanaClient } from '../../integrations/asana/client.js';
 import { logger } from '../../utils/logger.js';
+import { box, separator } from '../../utils/ui.js';
+import chalk from 'chalk';
 
 const REQUIRED_ENV_VARS: Array<{ key: keyof ResolvedEnv; label: string; secret: boolean }> = [
   { key: 'GITLAB_TOKEN', label: 'GitLab Token', secret: true },
@@ -114,7 +116,14 @@ export function createProgressSummaryCommand(): Command {
             }
           }
 
-          logger.info(`Period: ${dateRange.from} to ${dateRange.to}`);
+          // Show execution info
+          console.log();
+          console.log(separator());
+          logger.info(`Period: ${chalk.cyan(dateRange.from)} to ${chalk.cyan(dateRange.to)}`);
+          logger.info(`GitLab projects: ${chalk.cyan(gitlabProjectNames.join(', '))}`);
+          logger.info(`Asana project: ${chalk.cyan(asanaProjectId)}`);
+          console.log(separator());
+          console.log();
 
           const gitlabClient = new GitLabClient(env.GITLAB_TOKEN, env.GITLAB_URL);
           const asanaClient = new AsanaClient(env.ASANA_TOKEN);
@@ -129,7 +138,10 @@ export function createProgressSummaryCommand(): Command {
             },
           });
 
-          console.log('\n' + summary);
+          // Display result in a nice box
+          console.log();
+          console.log(box(summary, 'Progress Summary'));
+          console.log();
         } catch (error) {
           logger.error(error instanceof Error ? error.message : String(error));
           process.exit(1);
