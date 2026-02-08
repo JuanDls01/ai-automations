@@ -1,10 +1,12 @@
 import { GitLabClient } from '../../integrations/gitlab/client.js';
 import { AsanaClient } from '../../integrations/asana/client.js';
 import { generateProgressSummary } from '../../ai/provider.js';
+import { withSpinner } from '../../utils/spinner.js';
+import { logger } from '../../utils/logger.js';
 import type { ProgressData } from './types.js';
 import type { AsanaTask } from '../../integrations/asana/types.js';
 
-interface HandlerConfig {
+export interface HandlerConfig {
   dateRange: { from: string; to: string };
   gitlab: {
     projectNames: string[];
@@ -35,16 +37,21 @@ export async function handleProgressSummary(
   };
 
   // Step 1: Fetch data in parallel
-  console.log('Fetching data from GitLab and Asana...');
+  const [mergedMRs, openMRs, completedTasks, incompleteTasks] = await withSpinner(
+    'Fetching data from GitLab and Asana...',
+    () =>
+      Promise.all([
+        gitlabClient.getMergedMRs(config.gitlab.projectNames, config.dateRange),
+        gitlabClient.getOpenMRs(config.gitlab.projectNames, config.dateRange),
+        asanaClient.getCompletedTasks(config.asana.workspaceGid, config.dateRange),
+        asanaClient.getMyIncompleteTasksInProject(
+          config.asana.workspaceGid,
+          config.asana.projectGid
+        ),
+      ])
+  );
 
-  const [mergedMRs, openMRs, completedTasks, incompleteTasks] = await Promise.all([
-    gitlabClient.getMergedMRs(config.gitlab.projectNames, config.dateRange),
-    gitlabClient.getOpenMRs(config.gitlab.projectNames, config.dateRange),
-    asanaClient.getCompletedTasks(config.asana.workspaceGid, config.dateRange),
-    asanaClient.getMyIncompleteTasksInProject(config.asana.workspaceGid, config.asana.projectGid),
-  ]);
-
-  console.log(
+  logger.info(
     `Found: ${mergedMRs.length} merged MRs, ${openMRs.length} open MRs, ` +
       `${completedTasks.length} completed tasks, ${incompleteTasks.length} incomplete tasks`
   );
@@ -66,34 +73,34 @@ export async function handleProgressSummary(
   }
 
   // Step 3: Fetch section transitions for completed tasks
-  console.log('Fetching section transitions for completed tasks...');
-
-  const completedTasksWithTransitions = await Promise.all(
-    completedTasks.map(async (task) => {
-      try {
-        const transitions = await asanaClient.getTaskSectionChanges(task.gid, config.dateRange);
-        return { task, transitions };
-      } catch {
-        return { task, transitions: [] };
-      }
-    })
+  const completedTasksWithTransitions = await withSpinner('Fetching section transitions...', () =>
+    Promise.all(
+      completedTasks.map(async (task) => {
+        try {
+          const transitions = await asanaClient.getTaskSectionChanges(task.gid, config.dateRange);
+          return { task, transitions };
+        } catch {
+          return { task, transitions: [] };
+        }
+      })
+    )
   );
 
   // Step 4: Enrich merged MRs with Asana task data
-  console.log('Enriching merged MRs with Asana data...');
+  const enrichedMergedMRs = await withSpinner('Enriching MRs with Asana data...', () =>
+    Promise.all(
+      mergedMRs.map(async (mr) => {
+        const asanaTaskId = GitLabClient.extractAsanaTaskId(mr.description);
+        if (!asanaTaskId) return { mr, linkedTask: null };
 
-  const enrichedMergedMRs = await Promise.all(
-    mergedMRs.map(async (mr) => {
-      const asanaTaskId = GitLabClient.extractAsanaTaskId(mr.description);
-      if (!asanaTaskId) return { mr, linkedTask: null };
-
-      try {
-        const task = await asanaClient.getTask(asanaTaskId);
-        return { mr, linkedTask: task };
-      } catch {
-        return { mr, linkedTask: null };
-      }
-    })
+        try {
+          const task = await asanaClient.getTask(asanaTaskId);
+          return { mr, linkedTask: task };
+        } catch {
+          return { mr, linkedTask: null };
+        }
+      })
+    )
   );
 
   // Step 4: Build ProgressData
@@ -149,8 +156,9 @@ export async function handleProgressSummary(
   };
 
   // Step 5: Generate summary with AI
-  console.log('Generating summary with AI...');
-  const summary = await generateProgressSummary(progressData);
+  const summary = await withSpinner('Generating summary with AI...', () =>
+    generateProgressSummary(progressData)
+  );
 
   return summary;
 }

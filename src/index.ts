@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 
-import { cli } from './cli';
+import { config } from 'dotenv';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { cli } from './cli.js';
+
+// Load env: ~/.ai-automations/.env first (lower priority), then CWD .env (higher priority)
+config({ path: join(homedir(), '.ai-automations', '.env') });
+config();
 
 /**
  * Main entry point for the CLI
