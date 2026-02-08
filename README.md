@@ -2,7 +2,7 @@
 
 Interactive CLI to run automated tasks powered by GenAI.
 
-![Terminal Demo](./assets/new-terminal-demo.png)
+![Terminal Demo](./assets/final-terminal-demo.png)
 
 ## Installation
 
