@@ -2,7 +2,31 @@
 
 Interactive CLI to run automated tasks powered by GenAI.
 
-## Quick Start
+![Terminal Demo](./assets/terminal-demo.png)
+
+## Installation
+
+### For team members (recommended)
+
+Install directly from the Git repository:
+
+```bash
+npm install -g git+https://github.com/JuanDls01/ai-automations.git
+```
+
+To install a specific version (using Git tags):
+
+```bash
+npm install -g git+https://github.com/JuanDls01/ai-automations.git#v1.0.0
+```
+
+To update to the latest version:
+
+```bash
+npm update -g ai-automations
+```
+
+### For local development
 
 ```bash
 npm install
@@ -10,7 +34,7 @@ npm run build
 npm link        # Makes `ai-auto` available globally
 ```
 
-Then run:
+## Usage
 
 ```bash
 ai-auto                # Interactive menu
